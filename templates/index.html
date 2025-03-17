@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flower Predictor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        #upload-form {
+            margin-top: 20px;
+        }
+        #preview {
+            margin-top: 20px;
+            max-width: 300px;
+        }
+        #result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Flower Predictor</h1>
+    <p>Select a flower image or show images from predictor</p>
+    
+    <form id="upload-form" enctype="multipart/form-data">
+        <input type="file" id="file-input" accept="image/*" required>
+        <button type="submit">Predict</button>
+    </form>
+    
+    <img id="preview" src="#" alt="Uploading Image" style="display: none;">
+    <div id="result"></div>
+    
+    <script>
+        document.getElementById('file-input').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('preview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        document.getElementById('upload-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const fileInput = document.getElementById('file-input');
+            if (fileInput.files.length === 0) {
+                alert('Lütfen bir dosya seçin.');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let resultHTML = '<h2>Tahmin Sonuçları</h2>';
+                    data.predictions.forEach(pred => {
+                        resultHTML += `<p><strong>${pred.class}</strong>: ${pred.probability.toFixed(2)}%</p>`;
+                    });
+                    document.getElementById('result').innerHTML = resultHTML;
+                } else {
+                    document.getElementById('result').innerHTML = '<p>Hata: ' + data.error + '</p>';
+                }
+            })
+            .catch(error => console.error('Hata:', error));
+        });
+    </script>
+</body>
+</html>
