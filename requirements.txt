@@ -1,0 +1,10 @@
+Flask
+numpy
+tensorflow
+keras
+pillow
+opencv-python
+matplotlib
+scikit-learn
+requests
+werkzeug
